@@ -8,33 +8,24 @@ import cv2
 from matplotlib import pyplot as plt
 
 def grab_rgb(image, c):
-    pixels = []
 
-    # Detect pixel values (RGB)
-    mask = np.zeros(image.shape, dtype="uint8")
-    cv2.drawContours(mask, c, -1, color=255, thickness=-1)
+	# Initialize empty list
+	lst_intensities = []
+	# Create a mask image that contains the contour filled in
+	cimg = np.zeros_like(image)
+	cv2.drawContours(cimg, c, i, color=255, thickness=-1)
 
-    plt.imshow(mask)
-    plt.show()
+	plt.imshow(cimg)
+	plt.show()
 
-    points = np.where(mask == 255)
+	# Access the image pixels and create a 1D numpy array then add to list
+	pts = np.where(cimg == 255)
+	lst_intensities.append(image[pts[0], pts[1]])
+	pixel_string = '{0},{1},{2}'.format(r, g, b)
 
+	print (pixel_string)
 
-    for point in points:
-        pixel = (image[point[1], point[0]])
-        pixel = pixel.tolist()
-        pixels.append(pixel)
-
-    pixels = [tuple(l) for l in pixels]
-    car_color = (pixels)
-
-    r = car_color[0]
-    g = car_color[1]
-    b = car_color[2]
-
-    pixel_string = '{0},{1},{2}'.format(r, g, b)
-
-    return pixel_string
+	return pixel_string
  
 # parse the arguments
 ap = argparse.ArgumentParser()
@@ -86,8 +77,7 @@ for (i, c) in enumerate(cnts):
 	# draw the bright spot on the image
 	(x, y, w, h) = cv2.boundingRect(c)
 	# if c contains red count
-	rgb = grab_rgb(image, c)
-	print (rgb)
+	rgb = grab_rgb(image, cnts)
 
 	#((cX, cY), radius) = cv2.minEnclosingCircle(c)
 	# place the counts on the image
