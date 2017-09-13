@@ -9,21 +9,26 @@ from matplotlib import pyplot as plt
 
 def grab_rgb(image, c):
 
-	# Initialize empty list
-	lst_intensities = []
 	# Create a mask image that contains the contour filled in
 	cimg = np.zeros_like(image)
 	cv2.drawContours(cimg, c, i, color=255, thickness=-1)
 
-	# plt.imshow(cimg)
-	# plt.show()
-
 	# Access the image pixels and create a 1D numpy array then add to list
 	pts = np.where(cimg == 255)
-	lst_intensities.append(image[pts[0], pts[1]])
-	pixel_string = '{0},{1},{2}'.format(r, g, b)
+	lst_intensities = image[pts[0], pts[1]]
 
-	return pixel_string
+	return lst_intensities
+
+
+def is_red(lst_intensities):
+	red = 0
+
+	for l in lst_intensities:
+		red += l[2] # add up the red intensities
+
+	red = float(red)/len(lst_intensities)
+
+	return red
  
 # parse the arguments
 ap = argparse.ArgumentParser()
@@ -70,20 +75,21 @@ cnts = contours.sort_contours(cnts)[0]
 
 b,g,r = cv2.split(image)
  
+j = 0
 # loop over the contours
 for (i, c) in enumerate(cnts):
 	# draw the bright spot on the image
 	(x, y, w, h) = cv2.boundingRect(c)
 	# if c contains red count
 	rgb = grab_rgb(image, cnts)
-	print(rgb)
+	red = is_red(rgb) #the average amount of red in the "small blob"
 
-	#((cX, cY), radius) = cv2.minEnclosingCircle(c)
-	# place the counts on the image
-	cv2.putText(image, "{}".format(i + 1), (x, y - 5),
-		cv2.FONT_HERSHEY_PLAIN, 0.6, (255, 255, 255), 1)
+	if red > 30: # only label "small blobs" that have at least a relevant amount of red on average in the region
+		j += 1
+		cv2.putText(image, "{}".format(j), (x, y - 5),
+			cv2.FONT_HERSHEY_PLAIN, 0.6, (255, 255, 255), 1)
  
 # show the output image
-plt.imshow(image)
-plt.show()
+cv2.imshow('image',image)
+cv2.waitKey(0)
 
