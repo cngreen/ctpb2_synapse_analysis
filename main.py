@@ -6,8 +6,37 @@ import argparse
 import imutils
 import cv2
 from matplotlib import pyplot as plt
+
+def grab_rgb(image, c):
+    pixels = []
+
+    # Detect pixel values (RGB)
+    mask = np.zeros(image.shape, dtype="uint8")
+    cv2.drawContours(mask, c, -1, color=255, thickness=-1)
+
+    plt.imshow(mask)
+    plt.show()
+
+    points = np.where(mask == 255)
+
+
+    for point in points:
+        pixel = (image[point[1], point[0]])
+        pixel = pixel.tolist()
+        pixels.append(pixel)
+
+    pixels = [tuple(l) for l in pixels]
+    car_color = (pixels)
+
+    r = car_color[0]
+    g = car_color[1]
+    b = car_color[2]
+
+    pixel_string = '{0},{1},{2}'.format(r, g, b)
+
+    return pixel_string
  
-# construct the argument parse and parse the arguments
+# parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True,
 	help="path to the image file")
@@ -18,17 +47,11 @@ image = cv2.imread(args["image"])
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
-# threshold the image to reveal light regions in the
-# blurred image
-thresh = cv2.threshold(blurred, 35, 255, cv2.THRESH_BINARY)[1]
-
-
-plt.imshow(thresh, cmap='gray')
-plt.show()
+# threshold the image to reveal light regions in the blurred image
+thresh = cv2.threshold(blurred, 30, 255, cv2.THRESH_BINARY)[1]
 
 # perform a connected component analysis on the thresholded
-# image, then initialize a mask to store only the "large"
-# components
+# image, then initialize a mask to store only the "small blobs"
 labels = measure.label(thresh, neighbors=8, background=0)
 mask = np.zeros(thresh.shape, dtype="uint8")
 
@@ -46,7 +69,7 @@ for label in np.unique(labels):
 
 	# if the number of pixels in the component is sufficiently
 	# small, then add it to our mask of "small blobs"
-	if numPixels < 300:
+	if numPixels < 30 and numPixels > 3:
 		mask = cv2.add(mask, labelMask)
 
 # find the contours in the mask, then sort them from left to
@@ -55,16 +78,23 @@ cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	cv2.CHAIN_APPROX_SIMPLE)
 cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 cnts = contours.sort_contours(cnts)[0]
+
+b,g,r = cv2.split(image)
  
 # loop over the contours
 for (i, c) in enumerate(cnts):
 	# draw the bright spot on the image
 	(x, y, w, h) = cv2.boundingRect(c)
-	((cX, cY), radius) = cv2.minEnclosingCircle(c)
-	cv2.circle(image, (int(cX), int(cY)), int(radius),
-		(0, 0, 255), 3)
-	cv2.putText(image, "#{}".format(i + 1), (x, y - 15),
-		cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+	# if c contains red count
+	rgb = grab_rgb(image, c)
+	print (rgb)
+
+	#((cX, cY), radius) = cv2.minEnclosingCircle(c)
+	# place the counts on the image
+	cv2.putText(image, "{}".format(i + 1), (x, y - 5),
+		cv2.FONT_HERSHEY_PLAIN, 0.6, (255, 255, 255), 1)
  
 # show the output image
-cv2.imshow("Image", image)
+plt.imshow(image)
+plt.show()
+
