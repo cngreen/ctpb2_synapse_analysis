@@ -78,7 +78,6 @@ b,g,r = cv2.split(image)
 j = 0
 # loop over the contours
 for (i, c) in enumerate(cnts):
-	# draw the bright spot on the image
 	(x, y, w, h) = cv2.boundingRect(c)
 	# if c contains red count
 	rgb = grab_rgb(image, cnts)
@@ -86,10 +85,16 @@ for (i, c) in enumerate(cnts):
 
 	if red > 30: # only label "small blobs" that have at least a relevant amount of red on average in the region
 		j += 1
+		# mark the "blob" that's being counted
+		((cX, cY), radius) = cv2.minEnclosingCircle(c) 
+		cv2.circle(image, (int(cX), int(cY)), int(radius),
+		(255, 255, 255), 1)
 		cv2.putText(image, "{}".format(j), (x, y - 5),
 			cv2.FONT_HERSHEY_PLAIN, 0.6, (255, 255, 255), 1)
  
 # show the output image
 cv2.imshow('image',image)
 cv2.waitKey(0)
+
+print (j)
 
