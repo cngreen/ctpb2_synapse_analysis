@@ -15,15 +15,13 @@ def grab_rgb(image, c):
 	cimg = np.zeros_like(image)
 	cv2.drawContours(cimg, c, i, color=255, thickness=-1)
 
-	plt.imshow(cimg)
-	plt.show()
+	# plt.imshow(cimg)
+	# plt.show()
 
 	# Access the image pixels and create a 1D numpy array then add to list
 	pts = np.where(cimg == 255)
 	lst_intensities.append(image[pts[0], pts[1]])
 	pixel_string = '{0},{1},{2}'.format(r, g, b)
-
-	print (pixel_string)
 
 	return pixel_string
  
@@ -78,6 +76,7 @@ for (i, c) in enumerate(cnts):
 	(x, y, w, h) = cv2.boundingRect(c)
 	# if c contains red count
 	rgb = grab_rgb(image, cnts)
+	print(rgb)
 
 	#((cX, cY), radius) = cv2.minEnclosingCircle(c)
 	# place the counts on the image
